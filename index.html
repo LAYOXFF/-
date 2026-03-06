@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAYOX - عالمك الخاص</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-red: #e50914;
+            --dark-bg: #141414;
+            --card-bg: #181818;
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Tajawal', sans-serif;
+            background: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* تخصيص السكرول بار */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: var(--main-red); border-radius: 10px; }
+
+        /* شاشة التحميل */
+        #loader {
+            position: fixed; inset: 0; background: black; z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .logo-anim { 
+            color: var(--main-red); font-size: clamp(40px, 8vw, 70px); 
+            font-weight: 900; animation: pulse 1.5s infinite; letter-spacing: 5px; 
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
+
+        /* شاشة تسجيل الدخول */
+        #loginScreen {
+            position: fixed; inset: 0; 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07e3f8eb14af/8a304974-0499-4c80-920e-93e0995d9337/DZ-en-20220502-popsignuptwoweeks-perspective_alpha_website_large.jpg');
+            background-size: cover; display: flex; justify-content: center; align-items: center; z-index: 9000;
+        }
+        .login-box { 
+            background: rgba(0, 0, 0, 0.85); padding: 40px; border-radius: 10px; 
+            width: 90%; max-width: 450px; text-align: right; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        .login-box input { 
+            width: 100%; padding: 15px; margin: 12px 0; border: none; border-radius: 5px; 
+            background: #333; color: white; box-sizing: border-box; font-size: 16px; outline: none;
+        }
+        .login-box input:focus { background: #454545; box-shadow: inset 0 0 0 1px var(--main-red); }
+        
+        .btn-main { 
+            width: 100%; padding: 15px; background: var(--main-red); color: white; 
+            border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 18px; 
+            margin-top: 20px; transition: var(--transition);
+        }
+        .btn-main:hover { background: #b20710; }
+
+        /* اختيار البروفايل */
+        #profileSelection {
+            position: fixed; inset: 0; background: var(--dark-bg); z-index: 8500;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .profile-list { display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap; justify-content: center; padding: 20px; }
+        .profile-card { text-align: center; cursor: pointer; transition: var(--transition); width: 150px; }
+        .profile-card img { 
+            width: 100%; aspect-ratio: 1/1; border-radius: 8px; border: 3px solid transparent; 
+            object-fit: cover; margin-bottom: 10px; transition: var(--transition);
+        }
+        .profile-card:hover img { border-color: white; transform: scale(1.05); }
+        .profile-card p { color: #808080; font-size: 18px; margin: 0; transition: 0.3s; }
+        .profile-card:hover p { color: white; }
+
+        /* الهيدر */
+        header {
+            position: fixed; top: 0; width: 100%; padding: 20px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: 0.5s; box-sizing: border-box;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        }
+        header.scrolled { background: var(--dark-bg); padding: 12px 5%; border-bottom: 1px solid #333; }
+        .logo { color: var(--main-red); font-size: 30px; font-weight: 900; text-decoration: none; letter-spacing: 2px; }
+
+        /* Hero Section */
+        .hero { height: 95vh; position: relative; display: flex; align-items: center; padding: 0 5%; overflow: hidden; }
+        .hero-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+        .hero-overlay { 
+            position: absolute; inset: 0; 
+            background: linear-gradient(to right, rgba(0,0,0,0.9) 10%, transparent 70%),
+                        linear-gradient(to top, var(--dark-bg) 5%, transparent 30%); 
+        }
+        .hero-info { position: relative; z-index: 1; max-width: 700px; }
+        .hero-info h1 { font-size: clamp(32px, 5vw, 60px); margin: 0 0 15px 0; font-weight: 900; }
+        .hero-info p { font-size: clamp(14px, 2vw, 18px); line-height: 1.6; margin-bottom: 25px; color: #e5e5e5; }
+
+        /* صفوف الأفلام */
+        .row-container { padding: 30px 0 0 5%; }
+        .row-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; color: #e5e5e5; }
+        .movie-row { display: flex; gap: 10px; overflow-x: auto; padding: 15px 0; scrollbar-width: none; }
+        .movie-row::-webkit-scrollbar { display: none; }
+
+        .movie-card {
+            min-width: 260px; height: 146px; background: var(--card-bg); border-radius: 4px;
+            position: relative; cursor: pointer; transition: var(--transition); overflow: hidden;
+        }
+        .movie-card:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+        .movie-card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* شريط التقدم */
+        .progress-container { position: absolute; bottom: 0; left: 0; height: 4px; background: #555; width: 100%; }
+        .progress-bar { height: 100%; background: var(--main-red); width: 0%; transition: width 0.3s; }
+
+        /* المودال */
+        #modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 10000; justify-content: center; align-items: center; padding: 10px;
+        }
+        .modal-content { 
+            background: #181818; width: 100%; max-width: 1000px; border-radius: 12px; 
+            overflow: hidden; position: relative;
+        }
+        .close-btn { 
+            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5); 
+            width: 40px; height: 40px; border-radius: 50%; display: flex; 
+            justify-content: center; align-items: center; cursor: pointer; z-index: 10; color: white;
+            transition: 0.3s;
+        }
+        .close-btn:hover { background: white; color: black; }
+
+        #toast { 
+            position: fixed; bottom: 30px; right: 30px; background: #46d369; 
+            color: white; padding: 15px 30px; border-radius: 5px; display: none; 
+            z-index: 11000; font-weight: bold; animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        .search-box {
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); 
+            padding: 8px 15px; display: flex; align-items:center; border-radius: 20px;
+        }
+        .search-box input { background: transparent; border: none; color: white; outline: none; padding-right: 10px; font-family: 'Tajawal'; width: 120px; transition: 0.3s; }
+        .search-box input:focus { width: 200px; }
+
+        @media (max-width: 768px) {
+            header nav { display: none !important; }
+            .hero-info { text-align: center; }
+            .search-box input { width: 80px; }
+            .movie-card { min-width: 180px; height: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شاشة التحميل -->
+    <div id="loader"><div class="logo-anim">LAYOX</div></div>
+
+    <!-- تسجيل الدخول -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h2 id="authTitle">تسجيل الدخول</h2>
+            <input id="username" type="text" placeholder="اسم المستخدم (admin)">
+            <input id="password" type="password" placeholder="كلمة المرور (1234)">
+            <button class="btn-main" onclick="login()">دخول</button>
+            <p style="color:#737373; margin-top:20px; text-align: center;">
+                جديد في LAYOX؟ <span onclick="toggleAuth()" id="toggleText" style="color:white; cursor:pointer; text-decoration: underline;">سجل الآن.</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- اختيار البروفايل -->
+    <div id="profileSelection">
+        <h1 style="font-size: clamp(24px, 4vw, 40px); margin-bottom: 20px;">من يشاهد؟</h1>
+        <div class="profile-list" id="profileList"></div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div id="mainContent" style="display:none;">
+        <header id="navbar">
+            <div style="display:flex; align-items:center; gap:25px;">
+                <a href="#" class="logo">LAYOX</a>
+                <nav style="display:flex; gap:20px; font-size:15px; font-weight:500;">
+                    <span style="cursor:pointer">الرئيسية</span>
+                    <span style="cursor:pointer">الأفلام</span>
+                    <span style="cursor:pointer">المسلسلات</span>
+                </nav>
+            </div>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div class="search-box">
+                    <i class="fas fa-search" style="font-size: 14px; color: #ccc;"></i>
+                    <input type="text" id="searchInput" placeholder="بحث باسم الفيلم..." onkeyup="search()">
+                </div>
+                <span id="userLabel" style="font-weight:bold; color: var(--main-red);"></span>
+                <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <section class="hero">
+            <video class="hero-video" autoplay muted loop playsinline id="heroVid">
+                <source src="movies/movie1.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+            <div class="hero-info">
+                <h1 id="heroTitle">Superman & Lois</h1>
+                <p id="heroDesc">بعد سنوات من مواجهة الأشرار الخارقين والوحوش المسببة للفوضى، يواجه أشهر بطل خارق في العالم لويس لاين، أكبر تحدٍ لهما على الإطلاق - التعامل مع كل الضغوطات كآباء عاملين في مجتمع اليوم.</p>
+                <div style="display:flex; gap:15px; flex-wrap: wrap;">
+                    <button onclick="openPlayer(1)" style="padding:12px 35px; background:white; color:black; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:18px; display:flex; align-items:center; gap:10px;"><i class="fas fa-play"></i> تشغيل</button>
+                    <button style="padding:12px 35px; background:rgba(109, 109, 110, 0.7); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:18px; display:flex; align-items:center; gap:10px;"><i class="fas fa-info-circle"></i> معلومات</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="favoriteRow" class="row-container" style="display:none;">
+            <div class="row-title">قائمتي المفضلة</div>
+            <div class="movie-row" id="favoriteContent"></div>
+        </div>
+
+        <div id="continueRow" class="row-container" style="display:none;">
+            <div class="row-title">تابِع المشاهدة باسم <span id="contName" style="color:var(--main-red);"></span></div>
+            <div class="movie-row" id="continueContent"></div>
+        </div>
+
+        <div id="dynamicRows"></div>
+    </div>
+
+    <!-- المشغل -->
+    <div id="modal">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></div>
+            <video id="mainVideo" controls width="100%" style="aspect-ratio: 16/9; background: #000;"></video>
+            <div style="padding:30px; display:flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+                <div style="max-width: 70%;">
+                    <h2 id="mTitle" style="margin:0; font-size:28px;"></h2>
+                    <p id="mMeta" style="color:#46d369; font-weight:bold; margin:10px 0;"></p>
+                    <p id="mDesc" style="line-height:1.6; color:#ccc;"></p>
+                </div>
+                <button id="favBtn" style="background:none; border:1px solid #808080; color:white; padding:10px 20px; cursor:pointer; border-radius:50px; white-space: nowrap; transition: 0.3s;"></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        const movies = [
+            { id: 1, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie1.jpg", video: "movies/movie1.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 2, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie2.jpg", video: "movies/movie2.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 3, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie3.jpg", video: "movies/movie3.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 4, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie4.jpg", video: "movies/movie4.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 5, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie5.jpg", video: "movies/movie5.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 6, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie6.jpg", video: "movies/movie6.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 7, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie7.jpg", video: "movies/movie7.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 8, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie8.jpg", video: "movies/movie8.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 9, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie9.jpg", video: "movies/movie9.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 10, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie10.jpg", video: "movies/movie10.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021},
+            { id: 11, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie11.jpg", video: "movies/movie11.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 12, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie12.jpg", video: "movies/movie12.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 13, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie13.jpg", video: "movies/movie13.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 14, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie14.jpg", video: "movies/movie14.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 15, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie15.jpg", video: "movies/movie15.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 16, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie16.jpg", video: "movies/movie16.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 17, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie17.jpg", video: "movies/movie17.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 19, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie19.jpg", video: "movies/movie19.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 20, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie20.jpg", video: "movies/movie20.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 21, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie21.jpg", video: "movies/movie21.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 },
+            { id: 22, title: "Superman & Lois", cat: "أكشن - دراما", img: "images/movie22.jpg", video: "movies/movie22.mp4", desc: "يتناول العمل قصة أشهر بطل خارق على وجه الأرض، وعلاقته الزوجية بأشهر صحافية في العالم.", year: 2021 }
+
+ 
+ 
+       ];
+
+        let isLogin = true;
+        let currentUser = "";
+        let profiles = JSON.parse(localStorage.getItem('profiles')) || ["محمد", "الضيف"];
+
+        // التبديل بين دخول وتسجيل
+        function toggleAuth() {
+            isLogin = !isLogin;
+            document.getElementById("authTitle").innerText = isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد";
+            document.querySelector(".btn-main").innerText = isLogin ? "دخول" : "تسجيل";
+            document.getElementById("toggleText").innerText = isLogin ? "سجل الآن." : "تسجيل دخول.";
+        }
+
+        // تسجيل الدخول
+        function login() {
+            const u = document.getElementById("username").value;
+            const p = document.getElementById("password").value;
+            if(!u || !p) { alert("يرجى ملء البيانات"); return; }
+
+            if(!isLogin) {
+                localStorage.setItem("u_"+u, p);
+                showToast("تم إنشاء الحساب بنجاح!");
+                toggleAuth();
+            } else {
+                if(localStorage.getItem("u_"+u) === p || (u === "admin" && p === "1234")) {
+                    document.getElementById("loginScreen").style.display = "none";
+                    renderProfiles();
+                    document.getElementById("profileSelection").style.display = "flex";
+                } else { alert("البيانات غير صحيحة"); }
+            }
+        }
+
+        function logout() { location.reload(); }
+
+        // البروفايلات
+        function renderProfiles() {
+            const list = document.getElementById('profileList');
+            list.innerHTML = profiles.map(name => `
+                <div class="profile-card" onclick="startApp('${name}')">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png">
+                    <p>${name}</p>
+                </div>
+            `).join('') + `
+                <div class="profile-card" onclick="addNewProfile()">
+                    <img src="https://i.pinimg.com/originals/b2/a0/29/b2a029a6c275d77b3a093290ddadb522.jpg" style="opacity: 0.5;">
+                    <p>إضافة بروفايل</p>
+                </div>`;
+        }
+
+        function addNewProfile() {
+            const name = prompt("اسم البروفايل الجديد:");
+            if(name && name.trim()) {
+                profiles.push(name.trim());
+                localStorage.setItem('profiles', JSON.stringify(profiles));
+                renderProfiles();
+            }
+        }
+
+        function startApp(user) {
+            currentUser = user;
+            document.getElementById("profileSelection").style.display = "none";
+            document.getElementById("mainContent").style.display = "block";
+            document.getElementById("userLabel").innerText = user;
+            document.getElementById("contName").innerText = user;
+            renderAll();
+        }
+
+        // عرض الأفلام
+        function renderAll() {
+            const container = document.getElementById('dynamicRows');
+            let html = `<div class="row-container"><div class="row-title">المضاف حديثاً</div><div class="movie-row">`;
+            movies.forEach(m => {
+                html += `
+                    <div class="movie-card" data-title="${m.title.toLowerCase()}" onclick="openPlayer(${m.id})">
+                        <img src="${m.img}" onerror="this.src='https://via.placeholder.com/300x160/181818/ffffff?text=${m.title}'">
+                    </div>`;
+            });
+            html += `</div></div>`;
+            container.innerHTML = html;
+            updateContinueRow();
+            updateFavoriteRow();
+        }
+
+        // المشغل
+        function openPlayer(id) {
+            const m = movies.find(mov => mov.id === id);
+            const video = document.getElementById('mainVideo');
+            
+            document.getElementById('mTitle').innerText = m.title;
+            document.getElementById('mDesc').innerText = m.desc;
+            document.getElementById('mMeta').innerText = `${m.year} | ${m.cat} | جودة 4K`;
+            
+            video.src = m.video;
+            document.getElementById('modal').style.display = "flex";
+            
+            let savedTime = localStorage.getItem(`time_${currentUser}_${id}`) || 0;
+            video.currentTime = savedTime;
+            video.play();
+
+            video.ontimeupdate = () => {
+                localStorage.setItem(`time_${currentUser}_${id}`, video.currentTime);
+                localStorage.setItem(`dur_${id}`, video.duration);
+                updateContinueRow();
+            };
+
+            const favBtn = document.getElementById('favBtn');
+            let favs = JSON.parse(localStorage.getItem('favs_' + currentUser)) || [];
+            updateFavBtnUI(favs.includes(id));
+            favBtn.onclick = () => toggleFavorite(id);
+        }
+
+        function updateFavBtnUI(isFav) {
+            const btn = document.getElementById('favBtn');
+            btn.innerHTML = isFav ? '<i class="fas fa-check"></i> في قائمتي' : '<i class="far fa-plus-square"></i> قائمة المفضلة';
+            btn.style.color = isFav ? "var(--main-red)" : "white";
+        }
+
+        function toggleFavorite(id) {
+            let favs = JSON.parse(localStorage.getItem('favs_' + currentUser)) || [];
+            const idx = favs.indexOf(id);
+            if(idx > -1) {
+                favs.splice(idx, 1);
+                showToast("تمت الإزالة من المفضلة");
+            } else {
+                favs.push(id);
+                showToast("تمت الإضافة للمفضلة");
+            }
+            localStorage.setItem('favs_' + currentUser, JSON.stringify(favs));
+            updateFavBtnUI(favs.includes(id));
+            updateFavoriteRow();
+        }
+
+        function updateFavoriteRow() {
+            const container = document.getElementById('favoriteContent');
+            let favs = JSON.parse(localStorage.getItem('favs_' + currentUser)) || [];
+            container.innerHTML = "";
+            favs.forEach(id => {
+                const m = movies.find(mov => mov.id === id);
+                if(m) container.innerHTML += `<div class="movie-card" onclick="openPlayer(${m.id})"><img src="${m.img}"></div>`;
+            });
+            document.getElementById('favoriteRow').style.display = favs.length ? "block" : "none";
+        }
+
+        function updateContinueRow() {
+            const container = document.getElementById('continueContent');
+            let hasContent = false;
+            container.innerHTML = "";
+            movies.forEach(m => {
+                let time = localStorage.getItem(`time_${currentUser}_${m.id}`);
+                let dur = localStorage.getItem(`dur_${m.id}`);
+                if(time > 5) {
+                    hasContent = true;
+                    let p = (time / dur) * 100;
+                    container.innerHTML += `
+                        <div class="movie-card" onclick="openPlayer(${m.id})">
+                            <img src="${m.img}">
+                            <div class="progress-container"><div class="progress-bar" style="width:${p}%"></div></div>
+                        </div>`;
+                }
+            });
+            document.getElementById('continueRow').style.display = hasContent ? "block" : "none";
+        }
+
+        function closeModal() {
+            const v = document.getElementById('mainVideo');
+            v.pause();
+            v.src = "";
+            document.getElementById('modal').style.display = "none";
+        }
+
+        function search() {
+            let q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.movie-card').forEach(card => {
+                let title = card.getAttribute('data-title') || "";
+                card.style.display = title.includes(q) ? "block" : "none";
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = "block";
+            setTimeout(() => t.style.display = "none", 3000);
+        }
+
+        window.onscroll = () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        };
+
+        window.onload = () => {
+            setTimeout(() => document.getElementById('loader').style.display = 'none', 1000);
+        };
+    </script>
+</body>
+</html>
